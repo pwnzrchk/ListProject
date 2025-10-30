@@ -25,12 +25,15 @@ MAIN_OBJ = $(MAIN:.cpp=.o)
 $(MAIN_OBJ): %.o: %.cpp
 	@$(CC) $(CFLAGS) -c $< -o $@
 
+LOG = logger.cpp
+LOG_OBJ = $(LOG:.cpp=.o)
+
+$(LOG_OBJ): %.o: %.cpp
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 
 
-
-
-list: $(MAIN_OBJ) $(LIST_OBJ)
+list: $(MAIN_OBJ) $(LIST_OBJ) $(LOG_OBJ)
 	@$(CC) $(CFLAGS) $^  -o $@ -lm
 
 

@@ -35,22 +35,33 @@ typedef struct{
 typedef struct{
     Node* nodes;
     int size;
-    int head;
-    int tail;
+    FILE* log_file;
 }List;
 
-static const int kNodesAmount = 10;
-static const int kShieldValue = -666;
-static const int kPoisonValue = -228;
-static const int kTrashPrev   = -1;
+static const int kNodesAmount      = 10;
+static const int kShieldValue      = -666;
+static const int kPoisonValue      = -228;
+static const int kTrashPrev        = -1;
+static const int kFictionalElement = 0;
 
 //=================================================================================================================================================
 
 tListError ListDump  (List* ref_list);
 tListError ListVerify(List* ref_list);
 tListError DeleteNode(List* ref_list, int index);
+tListError AddBehind (List* ref_list, tData value);
+tListError AddFront  (List* ref_list, tData value);
 tListError AddNode   (List* reference_list, int index, tData value);
-void ListConstructor (List* reference_list);
+void ListConstructor (List* reference_list, char* logger_file_name);
+void ListDtor        (List* ref_list);
+
+tListError SetData (List* ref_list, int index, tData value);
+tData GetData      (List* ref_list, int index);
+int NodeNext (List* ref_list, int index);
+int NodePrev (List* ref_list, int index);
+int ListTail (List* ref_list);
+int ListHead (List* ref_list);
+
 
 #endif //list_h
 
