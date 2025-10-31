@@ -20,9 +20,11 @@ void EndGraph(List* ref_list) {
 }
 
 void PrintNodes(List* ref_list) {
-    for (int i = 1; i < ref_list->size + 1; i++) {
+    for (int i = 1; NodeNext(ref_list, i) != 0; i = NodeNext(ref_list, i)) {
         fprintf(LOG_FILE, "\t%d [shape=record,label=\"   %d\\n %d\\n %d\\n \" ];\n", i, ref_list->nodes[i].data, ref_list->nodes[i].next, ref_list->nodes[i].prev);
     }
+    int tail = ref_list->nodes[kFictionalElement].prev;
+    fprintf(LOG_FILE, "\t%d [shape=record,label=\"   %d\\n %d\\n %d\\n \" ];\n", tail, ref_list->nodes[tail].data, ref_list->nodes[tail].next, ref_list->nodes[tail].prev);
     return;
 }
 
@@ -38,15 +40,16 @@ void PrintFictive(List* ref_list) {
 }
 
 
-void PrintNext(List* ref_list) {
+void PrintEdges(List* ref_list) {
 
     fprintf(LOG_FILE, "\t\t");
     fprintf(LOG_FILE, "NULL->%d[dir=\"both\", label=\"Head\", color=\"black\"];\n", ref_list->nodes[kFictionalElement].next);
     fprintf(LOG_FILE, "\t\t");
 
-    int k = 1;
+
     fprintf(LOG_FILE, "1");
-    for (int i = 1; k <  ref_list->size; i = NodeNext(ref_list, i), k++) {
+    for (int i = 1; NodeNext(ref_list, i) != 0; i = NodeNext(ref_list, i)) {
+        // if ( == 0) break;
         fprintf(LOG_FILE, "->%d", NodeNext(ref_list, i));
     }
     fprintf(LOG_FILE, " [dir=\"both\", label=\"prev-next\", color=\"black\"]");

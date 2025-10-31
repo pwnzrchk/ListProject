@@ -21,7 +21,7 @@ void ListConstructor(List* reference_list, const char* logger_file_name) {
         reference_list->nodes[i].prev = kTrashPrev;
     }
 
-    reference_list->log_file = fopen(logger_file_name, "w+");
+    reference_list->log_file = fopen(logger_file_name, "w");
     return;
 }
 

@@ -3,7 +3,7 @@
 int main(void) {
 
     List main_list = {};
-    const char* main_file = "logfile.dot";
+    const char* main_file = "9mice.dot";
     ListConstructor(&main_list, main_file);
     int adding_value = kPoisonValue;
     int index_after  = kTrashPrev;
@@ -24,7 +24,7 @@ int main(void) {
     BeginGraph(&main_list);
     PrintFictive(&main_list);
     PrintNodes(&main_list);
-    PrintNext(&main_list);
+    PrintEdges(&main_list);
     EndGraph(&main_list);
 
     return 0;
