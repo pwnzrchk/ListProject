@@ -30,15 +30,15 @@ typedef struct{
     tData data;
     int next;
     int prev;
-}Node;
+} Node;
 
 typedef struct{
     Node* nodes;
-    int size;
+    int free;
     FILE* log_file;
-}List;
+} List;
 
-static const int kNodesAmount      = 10;
+static const int kNodesAmount      = 10; // FIXME расширять динамически
 static const int kShieldValue      = -666;
 static const int kPoisonValue      = -228;
 static const int kTrashPrev        = -1;
@@ -48,11 +48,11 @@ static const int kFictionalElement = 0;
 
 tListError ListDump  (List* ref_list);
 tListError ListVerify(List* ref_list);
-tListError DeleteNode(List* ref_list, int index);
+tListError DeleteNodeAt(List* ref_list, int index);
 tListError AddBehind (List* ref_list, tData value);
 tListError AddFront  (List* ref_list, tData value);
-tListError AddNode   (List* reference_list, int index, tData value);
-void ListConstructor (List* reference_list, char* logger_file_name);
+tListError AddNodeAfter   (List* reference_list, int index, tData value);
+void ListConstructor (List* reference_list, const char* logger_file_name);
 void ListDtor        (List* ref_list);
 
 tListError SetData (List* ref_list, int index, tData value);
@@ -62,7 +62,8 @@ int NodePrev (List* ref_list, int index);
 int ListTail (List* ref_list);
 int ListHead (List* ref_list);
 
+//=================================================================================================================================================
 
-#endif //list_h
+#endif // list_h
 
 
