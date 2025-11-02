@@ -9,14 +9,22 @@ int main(void) {
     int index_after  = kTrashPrev;
     int comand       = kFictionalElement;
 
+    tListError error_for_handler = kNoErrors;
+
     ListDump(&main_list);
     while(scanf("%d %d %d", &comand, &index_after, &adding_value) == 3) {
         if(comand == 1) {
-            AddNodeAfter(&main_list, index_after, adding_value);
+            if ((error_for_handler = AddNodeAfter(&main_list, index_after, adding_value)) != kNoErrors) {
+                ErrorHandler(error_for_handler);
+                return 1;
+            }
             ListDump(&main_list);
         }
         if (comand == 2) {
-            DeleteNodeAt(&main_list, index_after);
+            if ((error_for_handler = DeleteNodeAt(&main_list, index_after)) != kNoErrors) {
+                ErrorHandler(error_for_handler);
+                return 1;
+            }
             ListDump(&main_list);
         }
     }

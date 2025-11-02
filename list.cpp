@@ -1,5 +1,11 @@
 #include "list.h"
 
+#define CASE_TEMPLATE_ERROR_HANDLER(error)               \
+        fprintf(stderr, "%s error in list\n", error);    \
+        break;
+
+//=================================================================================================================================================
+
 void ListConstructor(List* reference_list, const char* logger_file_name) {
     assert(reference_list);
 
@@ -44,8 +50,11 @@ tListError AddNodeAfter(List* reference_list, int index, tData value) {
     int next_address = reference_list->free;
     reference_list->free = reference_list->nodes[reference_list->free].next;
 
-
-
+    if(reference_list->free == kNodesAmount) {
+        Node* verify_buffer = (Node*)realloc(reference_list->nodes, kNodesAmount * kSizeMultiplier);
+        if (verify_buffer == NULL) return kNullPointer;
+        reference_list->nodes = verify_buffer;
+    }
 
     reference_list->nodes[next_address] = {value, reference_list->nodes[index].next, index};
     reference_list->nodes[reference_list->nodes[index].next].prev = next_address;
@@ -100,7 +109,7 @@ tListError ListVerify(List* ref_list) {
 
     if (ref_list->nodes[kFictionalElement].data != kShieldValue) {
         fprintf(stderr, "Canary was fucked sir...\n");
-        return kShiedError;
+        return kShieldError;
     }
 
     if (ref_list->free >= kNodesAmount) {
@@ -231,3 +240,52 @@ void ListDtor (List* ref_list) {
 }
 
 //=================================================================================================================================================
+
+void ErrorHandler (tListError error) {
+
+    switch(error) {
+
+        case kNullPointer:
+            CASE_TEMPLATE_ERROR_HANDLER("Null pointer")
+
+        case kIncorrectIndex:
+            CASE_TEMPLATE_ERROR_HANDLER("Incorrect index given")
+
+        case kIncorrectInput:
+            CASE_TEMPLATE_ERROR_HANDLER("Incorrect input given")
+
+        case kErrorLinking:
+            CASE_TEMPLATE_ERROR_HANDLER("Linking nodes")
+
+        case kBlankList:
+            CASE_TEMPLATE_ERROR_HANDLER("Filling blank list")
+
+        case kEmptyNode:
+            CASE_TEMPLATE_ERROR_HANDLER("Empty node insert")
+
+        case kShieldError:
+            CASE_TEMPLATE_ERROR_HANDLER("Shield")
+
+        case kIncorrectSize:
+            CASE_TEMPLATE_ERROR_HANDLER("Incorrect size")
+
+        case kIncorrectData:
+            CASE_TEMPLATE_ERROR_HANDLER("Insert in incorrect data")
+
+        case kErrorHead:
+            CASE_TEMPLATE_ERROR_HANDLER("Incorrect head")
+
+        case kErrorTail:
+             CASE_TEMPLATE_ERROR_HANDLER("Incorrect tail")
+
+        case kUserError:
+            CASE_TEMPLATE_ERROR_HANDLER("User")
+
+        case kNoErrors:
+
+        default:
+            CASE_TEMPLATE_ERROR_HANDLER("Error handler")
+    }
+
+    return;
+}
