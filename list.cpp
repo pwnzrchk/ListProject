@@ -1,25 +1,25 @@
 #include "list.h"
 
+//=================================================================================================================================================
+
 #define CASE_TEMPLATE_ERROR_HANDLER(error)               \
         fprintf(stderr, "%s error in list\n", error);    \
         break;
 
 //=================================================================================================================================================
 
-void ListConstructor(List* reference_list, const char* logger_file_name) {
-    assert(reference_list);
+tListError ListCtor(tList* reference_list, const char* logger_file_name) {
+    assert(reference_list != NULL);
 
-    reference_list->nodes = (Node*)calloc(kNodesAmount, sizeof(Node));
+    reference_list->nodes = (tNode*)calloc(kNodesAmount, sizeof(tNode));
     if (reference_list->nodes == NULL) {
-        fprintf(stderr, "Error calloc memory in constructor\n");
-        return;
+        return kNullPointer;
     }
 
     reference_list->nodes[kFictionalElement].prev = kFictionalElement;
     reference_list->nodes[kFictionalElement].next = kFictionalElement;
     reference_list->nodes[kFictionalElement].data = kShieldValue;
     reference_list->free = 1;
-
 
     for (int i = reference_list->free; i < kNodesAmount; i++) {
         reference_list->nodes[i].data = kPoisonValue;
@@ -28,31 +28,30 @@ void ListConstructor(List* reference_list, const char* logger_file_name) {
     }
 
     reference_list->log_file = fopen(logger_file_name, "w");
-    return;
+    return kNoErrors;
 }
 
 //=================================================================================================================================================
-//Add node after node under index number
-tListError AddNodeAfter(List* reference_list, int index, tData value) {
+
+tListError AddNodeAfter(tList* reference_list, int index, tData value) {
     assert(reference_list != NULL);
 
     if (index < 0 || index >= kNodesAmount) {
-        // fprintf(stderr, "Wrong input index for add\n");  //FIXME -
         return kIncorrectIndex;
     }
 
     if (reference_list->nodes[index].next < 0 || reference_list->nodes[index].data == kPoisonValue || reference_list->nodes[index].prev == kTrashPrev) {
-        // fprintf(stderr, "Error, not an initialized node before\n");
+
         return kIncorrectIndex;
     }
-
 
     int next_address = reference_list->free;
     reference_list->free = reference_list->nodes[reference_list->free].next;
 
     if(reference_list->free == kNodesAmount) {
-        Node* verify_buffer = (Node*)realloc(reference_list->nodes, kNodesAmount * kSizeMultiplier);
+        tNode* verify_buffer = (tNode*)realloc(reference_list->nodes, sizeof(tNode) * kNodesAmount * kSizeMultiplier);
         if (verify_buffer == NULL) return kNullPointer;
+
         reference_list->nodes = verify_buffer;
     }
 
@@ -60,41 +59,35 @@ tListError AddNodeAfter(List* reference_list, int index, tData value) {
     reference_list->nodes[reference_list->nodes[index].next].prev = next_address;
     reference_list->nodes[index].next = next_address;
 
-
     return kNoErrors;
 }
 
 //=================================================================================================================================================
 
-tListError DeleteNodeAt (List* ref_list, int index) {
+tListError DeleteNodeAt (tList* ref_list, int index) {
     assert(ref_list != NULL);
 
     if (index < 0 || index >= kNodesAmount) {
-        fprintf(stderr, "Wrong input index for add\n");
         return kIncorrectIndex;
     }
 
     if (ref_list->nodes[kFictionalElement].next == 0 || ref_list->nodes[kFictionalElement].prev == 0 || ref_list->free == 1) {
-        fprintf(stderr, "Blank list, nothing to delete\n");
         return kBlankList;
     }
 
     if (ref_list->nodes[index].next < 0 || ref_list->nodes[index].prev == kTrashPrev || ref_list->nodes[index].data == kPoisonValue) {
         if (ref_list->nodes[index].next == 0) {
-            fprintf(stderr, "Trying to delete null-node\n");
-            return kEmptyNode;
+            return kNullNode;
         }
-        // fprintf(stderr, "Trying to delete empty node\n"); //FIXME - handler
         return kEmptyNode;
     }
-
 
     ref_list->nodes[ref_list->nodes[index].prev].next = ref_list->nodes[index].next;
     ref_list->nodes[ref_list->nodes[index].next].prev = ref_list->nodes[index].prev;
 
     ref_list->nodes[index].data = kPoisonValue;
     ref_list->nodes[index].next = ref_list->free;
-    // ref_list->nodes[ref_list->free].next = index;
+
     ref_list->free = index;
     ref_list->nodes[index].prev = kTrashPrev;
 
@@ -104,7 +97,7 @@ tListError DeleteNodeAt (List* ref_list, int index) {
 
 //=================================================================================================================================================
 
-tListError ListVerify(List* ref_list) {
+tListError ListVerify(tList* ref_list) {
     assert(ref_list != NULL);
 
     if (ref_list->nodes[kFictionalElement].data != kShieldValue) {
@@ -117,14 +110,17 @@ tListError ListVerify(List* ref_list) {
         return kIncorrectSize;
     }
 
-
     if (ref_list->nodes[ref_list->nodes[kFictionalElement].next].prev != ref_list->nodes[ref_list->nodes[kFictionalElement].prev].next) {
         fprintf(stderr, "Incorrect previous indexes for head and tail\n");
         return kErrorHead;
     }
 
-    for (int i = 1; i != 1; i = NodeNext(ref_list, i)) {
-        Node current_node = ref_list->nodes[i];
+
+    for (int actual_node = NodeNext(ref_list, kFictionalElement);
+             actual_node != kFictionalElement;
+             actual_node = NodeNext(ref_list, i)) {
+
+        tNode current_node = ref_list->nodes[actual_nodeН];
         int next_address = current_node.next;
         int prev_address = current_node.prev;
         tData current_data = current_node.data;
@@ -141,15 +137,15 @@ tListError ListVerify(List* ref_list) {
                 fprintf(stderr, "Error in linking nodes\n");
                 return kErrorLinking;
             }
-
         }
+
     }
     return kNoErrors;
 }
 
 //=================================================================================================================================================
 
-tListError ListDump(List* ref_list) {
+tListError ListDump(tList* ref_list) {
     assert(ref_list != NULL);
 
     printf("\nHead of list: %d\nTail of list: %d\n", ref_list->nodes[kFictionalElement].next, ref_list->nodes[kFictionalElement].prev);
@@ -157,7 +153,7 @@ tListError ListDump(List* ref_list) {
     printf("Number    Next:    Data:    Prev:\t\n");
     for (int i = 0; i < kNodesAmount; i++) {
 
-        Node current_node = ref_list->nodes[i];
+        tNode current_node = ref_list->nodes[i];
         int next_address = current_node.next;
         int prev_address = current_node.prev;
         tData current_data = current_node.data;
@@ -170,27 +166,25 @@ tListError ListDump(List* ref_list) {
 
 //=================================================================================================================================================
 
-int ListHead(List* ref_list) {
+int ListHead(tList* ref_list) {
     return ref_list->nodes[0].next;
 }
 
 //=================================================================================================================================================
 
-int ListTail(List* ref_list) {
+int ListTail(tList* ref_list) {
     return ref_list->nodes[0].prev;
 }
 
 //=================================================================================================================================================
 
-tListError AddFront(List* ref_list, tData value) {
-    tListError add_error = kNoErrors;
-    if ((add_error = AddNodeAfter(ref_list, ref_list->nodes[kFictionalElement].next, value)) != kNoErrors) return add_error;
-    return kNoErrors;
+tListError AddFront(tList* ref_list, tData value) {
+    return AddNodeAfter(ref_list, kFictionalElement, value);
 }
 
 //=================================================================================================================================================
 
-tListError AddBehind (List* ref_list, tData value) {
+tListError AddBack (tList* ref_list, tData value) {
     tListError add_error = kNoErrors;
     if ((add_error = AddNodeAfter(ref_list, ref_list->nodes[kFictionalElement].prev, value)) != kNoErrors) return add_error;
     return kNoErrors;
@@ -198,22 +192,21 @@ tListError AddBehind (List* ref_list, tData value) {
 
 //=================================================================================================================================================
 
-int NodePrev(List* ref_list, int index) {
+int NodePrev(tList* ref_list, int index) {
     return ref_list->nodes[index].prev;
 }
 
 //=================================================================================================================================================
 
-int NodeNext(List* ref_list, int index) {
+int NodeNext(tList* ref_list, int index) {
     return ref_list->nodes[index].next;
 }
 
 //=================================================================================================================================================
 
-tData GetData (List* ref_list, int index) {
+tData GetData (tList* ref_list, int index) {
     tData ret_data = ref_list->nodes[index].data;
-    if (ret_data == kPoisonValue || ret_data == kShieldValue) {
-        fprintf(stderr, "Incorrect index to for getdata\n");
+    if (!ValidData(ret_data)) {
         return kPoisonValue;
     }
     return ret_data;
@@ -222,7 +215,7 @@ tData GetData (List* ref_list, int index) {
 
 //=================================================================================================================================================
 
-tListError SetData (List* ref_list, int index, tData value) {
+tListError SetData (tList* ref_list, int index, tData value) {
     if (index == 0 || ref_list->nodes[index].data == kPoisonValue || ref_list->nodes[index].prev == kTrashPrev) {
         return kIncorrectIndex;
     }
@@ -233,9 +226,15 @@ tListError SetData (List* ref_list, int index, tData value) {
 
 //=================================================================================================================================================
 
-void ListDtor (List* ref_list) {
+void ListDtor (tList* ref_list) {
     ref_list->free = kPoisonValue;
+    for (int i = NodeNext(ref_list, kFictionalElement); i != kFictionalElement; i = NodeNext(ref_list, i)) {
+        ref_list->nodes[i].data = kPoisonValue;
+        ref_list->nodes[i].prev = kTrashPrev;
+        ref_list->nodes[i].next = i + 1;
+    }
     free(ref_list->nodes);
+    fclose(ref_list->log_file);
     return;
 }
 
@@ -284,8 +283,18 @@ void ErrorHandler (tListError error) {
         case kNoErrors:
 
         default:
-            CASE_TEMPLATE_ERROR_HANDLER("Error handler")
+            CASE_TEMPLATE_ERROR_HANDLER("<unknown error>")
     }
 
     return;
 }
+
+//=================================================================================================================================================
+
+bool ValidData(tData ref_data) {
+    if (ref_data == kPoisonValue || ref_data == kShieldValue) return false;
+    return true;
+}
+
+//=================================================================================================================================================
+//=================================================================================================================================================

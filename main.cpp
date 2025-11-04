@@ -2,9 +2,9 @@
 
 int main(void) {
 
-    List main_list = {};
+    tList main_list = {};
     const char* main_file = "9mice.dot";
-    ListConstructor(&main_list, main_file);
+    ListCtor(&main_list, main_file);
     int adding_value = kPoisonValue;
     int index_after  = kTrashPrev;
     int comand       = kFictionalElement;

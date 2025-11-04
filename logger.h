@@ -5,10 +5,10 @@
 #include "list.h"
 
 
-void PrintNodes  (List* ref_list);
-void EndGraph    (List* ref_list);
-void BeginGraph  (List* ref_list);
-void PrintFictive(List* ref_list);
-void PrintEdges  (List* ref_list);
+void PrintNodes  (tList* ref_list);
+void EndGraph    (tList* ref_list);
+void BeginGraph  (tList* ref_list);
+void PrintFictive(tList* ref_list);
+void PrintEdges  (tList* ref_list);
 
 #endif //logger_h

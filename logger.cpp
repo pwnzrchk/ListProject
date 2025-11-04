@@ -6,7 +6,7 @@
 
 //=================================================================================================================================================
 
-void BeginGraph(List* ref_list) {
+void BeginGraph(tList* ref_list) {
     fprintf(LOG_FILE, "digraph A{\n"
                       "\trankdir=LR;\n"
                       "\tnode[color=\"red\",fontsize=14];\n"
@@ -14,12 +14,12 @@ void BeginGraph(List* ref_list) {
     return;
 }
 
-void EndGraph(List* ref_list) {
+void EndGraph(tList* ref_list) {
     fprintf(LOG_FILE, "}");
     return;
 }
 
-void PrintNodes(List* ref_list) {
+void PrintNodes(tList* ref_list) {
     for (int i = 1; NodeNext(ref_list, i) != 0; i = NodeNext(ref_list, i)) {
         fprintf(LOG_FILE, "\t%d [shape=record,label=\"   %d\\n %d\\n %d\\n \" ];\n", i, ref_list->nodes[i].data, ref_list->nodes[i].next, ref_list->nodes[i].prev);
     }
@@ -28,7 +28,7 @@ void PrintNodes(List* ref_list) {
     return;
 }
 
-void PrintFictive(List* ref_list) {
+void PrintFictive(tList* ref_list) {
     fprintf(LOG_FILE, "\tsubgraph clusternull {\n"
             "\t\tnode [shape=ellipse,style=filled,color = white];\n"
             "\t\tstyle=filled;\n"
@@ -40,7 +40,7 @@ void PrintFictive(List* ref_list) {
 }
 
 
-void PrintEdges(List* ref_list) {
+void PrintEdges(tList* ref_list) {
 
     fprintf(LOG_FILE, "\t\t");
     fprintf(LOG_FILE, "NULL->%d[dir=\"both\", label=\"Head\", color=\"black\"];\n", ref_list->nodes[kFictionalElement].next);
