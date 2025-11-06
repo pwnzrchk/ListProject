@@ -4,6 +4,6 @@
 #include "list.h"
 
 
-void RunInteractiveSession(tList* list);
+void ConsoleHandler(tList* list);
 
 #endif // console_handler_h

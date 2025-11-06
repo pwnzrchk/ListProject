@@ -1,10 +1,13 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
 #include "console_handler.h"
 #include "logger.h"
 #include "list.h"
-#include <stdio.h>
-#include <string.h>
 
-// Локальная (статическая) функция для вывода справки
+//=================================================================================================================================================
+
 static void PrintHelp() {
     printf("\nAvailable commands:\n");
     printf("  add <index> <value>  - Add a node with <value> after the node at <index>.\n");
@@ -14,12 +17,13 @@ static void PrintHelp() {
     printf("  exit                 - Exit the program.\n\n");
 }
 
-void RunInteractiveSession(tList* list) {
+//=================================================================================================================================================
+
+void ConsoleHandler(tList* list) {
     const char* dot_file_path  = "files/9mice.dot";
     const char* png_file_path  = "files/logpict.png";
     const char* html_file_path = "files/logfile.html";
 
-    // Инициализируем HTML файл при старте
     FILE* html_init = fopen(html_file_path, "w");
     if (html_init) {
         fprintf(html_init, "<!DOCTYPE html><html><head><title>List Log</title></head><body><h1>List Execution Log</h1><hr>\n");
@@ -32,7 +36,7 @@ void RunInteractiveSession(tList* list) {
     while (true) {
         printf("> ");
         if (scanf("%s", command) != 1) {
-             while (getchar() != '\n'); // Очистка буфера ввода
+             while (getchar() != '\n');
              continue;
         }
 
@@ -43,7 +47,7 @@ void RunInteractiveSession(tList* list) {
                 else ListDump(list);
             } else {
                 printf("Usage: add <index> <value>\n");
-                while (getchar() != '\n'); // Очистка буфера
+                while (getchar() != '\n');
             }
         } else if (strcmp(command, "del") == 0) {
             int index = 0;
@@ -52,7 +56,7 @@ void RunInteractiveSession(tList* list) {
                 else ListDump(list);
             } else {
                 printf("Usage: del <index>\n");
-                while (getchar() != '\n'); // Очистка буфера
+                while (getchar() != '\n');
             }
         } else if (strcmp(command, "dump") == 0) {
             GraphDump(list, dot_file_path, png_file_path, html_file_path);
@@ -65,3 +69,5 @@ void RunInteractiveSession(tList* list) {
         }
     }
 }
+
+//=================================================================================================================================================

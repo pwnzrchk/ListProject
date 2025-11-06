@@ -9,7 +9,7 @@ int main(void) {
         fprintf(stderr, "Failed to construct list.\n");
         return EXIT_FAILURE;
     }
-    RunInteractiveSession(&main_list);
+    ConsoleHandler(&main_list);
     ListDtor(&main_list);
     return EXIT_SUCCESS;
 }
