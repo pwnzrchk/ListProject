@@ -11,7 +11,9 @@
 tListError ListCtor(tList* reference_list, const char* logger_file_name) {
     assert(reference_list != NULL);
 
-    reference_list->nodes = (tNode*)calloc(kNodesAmount, sizeof(tNode));
+    reference_list->capacity = kNodesAmount;
+    reference_list->nodes = (tNode*)calloc((size_t)reference_list->capacity, sizeof(tNode));
+
     if (reference_list->nodes == NULL) {
         return kNullPointer;
     }
@@ -21,13 +23,14 @@ tListError ListCtor(tList* reference_list, const char* logger_file_name) {
     reference_list->nodes[kFictionalElement].data = kShieldValue;
     reference_list->free = 1;
 
-    for (int i = reference_list->free; i < kNodesAmount; i++) {
+    for (int i = reference_list->free; i < reference_list->capacity; i++) {
         reference_list->nodes[i].data = kPoisonValue;
-        reference_list->nodes[i].next = i + 1;
+        reference_list->nodes[i].next = (i + 1 == reference_list->capacity) ? kFictionalElement : i + 1;
         reference_list->nodes[i].prev = kTrashPrev;
     }
 
     reference_list->log_file = fopen(logger_file_name, "w");
+    reference_list->dump_counter = 0;
     return kNoErrors;
 }
 
@@ -36,24 +39,21 @@ tListError ListCtor(tList* reference_list, const char* logger_file_name) {
 tListError AddNodeAfter(tList* reference_list, int index, tData value) {
     assert(reference_list != NULL);
 
-    if (index < 0 || index >= kNodesAmount) {
+    if (index < 0 || index >= reference_list->capacity) {
         return kIncorrectIndex;
     }
 
     if (reference_list->nodes[index].next < 0 || reference_list->nodes[index].data == kPoisonValue || reference_list->nodes[index].prev == kTrashPrev) {
-
         return kIncorrectIndex;
+    }
+
+    if (reference_list->free == kFictionalElement) {
+        tListError error_for_realloc = kNoErrors;
+        if ((error_for_realloc = ListIncrease(reference_list)) != kNoErrors) return error_for_realloc;
     }
 
     int next_address = reference_list->free;
     reference_list->free = reference_list->nodes[reference_list->free].next;
-
-    if(reference_list->free == kNodesAmount) {
-        tNode* verify_buffer = (tNode*)realloc(reference_list->nodes, sizeof(tNode) * kNodesAmount * kSizeMultiplier);
-        if (verify_buffer == NULL) return kNullPointer;
-
-        reference_list->nodes = verify_buffer;
-    }
 
     reference_list->nodes[next_address] = {value, reference_list->nodes[index].next, index};
     reference_list->nodes[reference_list->nodes[index].next].prev = next_address;
@@ -64,10 +64,32 @@ tListError AddNodeAfter(tList* reference_list, int index, tData value) {
 
 //=================================================================================================================================================
 
+tListError ListIncrease (tList* reference_list) {
+    int old_capacity = reference_list->capacity;
+        int new_capacity = old_capacity * kSizeMultiplier;
+
+        tNode* verify_buffer = (tNode*)realloc(reference_list->nodes, sizeof(tNode) * (size_t)new_capacity);
+        if (verify_buffer == NULL) return kNullPointer;
+
+        reference_list->nodes = verify_buffer;
+        reference_list->capacity = new_capacity;
+
+        for (int new_node = old_capacity; new_node < new_capacity; new_node++) {
+            reference_list->nodes[new_node].data = kPoisonValue;
+            reference_list->nodes[new_node].next = ((new_node + 1 == new_capacity) ? kFictionalElement : new_node + 1);
+            reference_list->nodes[new_node].prev = kTrashPrev;
+        }
+        reference_list->free = old_capacity;
+
+    return kNoErrors;
+}
+
+//=================================================================================================================================================
+
 tListError DeleteNodeAt (tList* ref_list, int index) {
     assert(ref_list != NULL);
 
-    if (index < 0 || index >= kNodesAmount) {
+    if (index <= 0 || index >= ref_list->capacity) {
         return kIncorrectIndex;
     }
 
@@ -105,9 +127,9 @@ tListError ListVerify(tList* ref_list) {
         return kShieldError;
     }
 
-    if (ref_list->free >= kNodesAmount) {
-        fprintf(stderr, "Incorrect size of list\n");
-        return kIncorrectSize;
+    if (ref_list->free >= ref_list->capacity) {
+         fprintf(stderr, "Incorrect size of list\n");
+         return kIncorrectSize;
     }
 
     if (ref_list->nodes[ref_list->nodes[kFictionalElement].next].prev != ref_list->nodes[ref_list->nodes[kFictionalElement].prev].next) {
@@ -118,9 +140,9 @@ tListError ListVerify(tList* ref_list) {
 
     for (int actual_node = NodeNext(ref_list, kFictionalElement);
              actual_node != kFictionalElement;
-             actual_node = NodeNext(ref_list, i)) {
+             actual_node = NodeNext(ref_list, actual_node)) {
 
-        tNode current_node = ref_list->nodes[actual_nodeН];
+        tNode current_node = ref_list->nodes[actual_node];
         int next_address = current_node.next;
         int prev_address = current_node.prev;
         tData current_data = current_node.data;
@@ -133,7 +155,7 @@ tListError ListVerify(tList* ref_list) {
         }
 
         if (current_data != kPoisonValue || prev_address != kTrashPrev || next_address > 0) {
-            if (ref_list->nodes[next_address].prev != i || ref_list->nodes[prev_address].next != i) {
+            if (ref_list->nodes[next_address].prev != actual_node || ref_list->nodes[prev_address].next != actual_node) {
                 fprintf(stderr, "Error in linking nodes\n");
                 return kErrorLinking;
             }
@@ -151,7 +173,7 @@ tListError ListDump(tList* ref_list) {
     printf("\nHead of list: %d\nTail of list: %d\n", ref_list->nodes[kFictionalElement].next, ref_list->nodes[kFictionalElement].prev);
     printf("Free in list - [%d]\n\n", ref_list->free);
     printf("Number    Next:    Data:    Prev:\t\n");
-    for (int i = 0; i < kNodesAmount; i++) {
+    for (int i = 0; i < ref_list->capacity; i++) {
 
         tNode current_node = ref_list->nodes[i];
         int next_address = current_node.next;
@@ -227,15 +249,26 @@ tListError SetData (tList* ref_list, int index, tData value) {
 //=================================================================================================================================================
 
 void ListDtor (tList* ref_list) {
-    ref_list->free = kPoisonValue;
-    for (int i = NodeNext(ref_list, kFictionalElement); i != kFictionalElement; i = NodeNext(ref_list, i)) {
-        ref_list->nodes[i].data = kPoisonValue;
-        ref_list->nodes[i].prev = kTrashPrev;
-        ref_list->nodes[i].next = i + 1;
+    if (ref_list == NULL) return;
+
+    if (ref_list->nodes != NULL) {
+        for (int i = 0; i < ref_list->capacity; i++) {
+            ref_list->nodes[i].data = kFictionalElement;
+            ref_list->nodes[i].prev = kFictionalElement;
+            ref_list->nodes[i].next = kFictionalElement;
+        }
+        free(ref_list->nodes);
+        ref_list->nodes = NULL;
     }
-    free(ref_list->nodes);
-    fclose(ref_list->log_file);
-    return;
+
+    if (ref_list->log_file != NULL) {
+        fclose(ref_list->log_file);
+        ref_list->log_file = NULL;
+    }
+
+    ref_list->free         = kPoisonValue;
+    ref_list->capacity     = kPoisonValue;
+    ref_list->dump_counter = kPoisonValue;
 }
 
 //=================================================================================================================================================
@@ -279,6 +312,9 @@ void ErrorHandler (tListError error) {
 
         case kUserError:
             CASE_TEMPLATE_ERROR_HANDLER("User")
+
+        case kNullNode:
+            CASE_TEMPLATE_ERROR_HANDLER("Null node")
 
         case kNoErrors:
 

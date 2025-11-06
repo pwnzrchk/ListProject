@@ -1,39 +1,16 @@
-#include "logger.h"
+#include "console_handler.h"
 
 int main(void) {
 
     tList main_list = {};
-    const char* main_file = "9mice.dot";
-    ListCtor(&main_list, main_file);
-    int adding_value = kPoisonValue;
-    int index_after  = kTrashPrev;
-    int comand       = kFictionalElement;
+    const char* main_file = "files/9mice.dot";
 
-    tListError error_for_handler = kNoErrors;
-
-    ListDump(&main_list);
-    while(scanf("%d %d %d", &comand, &index_after, &adding_value) == 3) {
-        if(comand == 1) {
-            if ((error_for_handler = AddNodeAfter(&main_list, index_after, adding_value)) != kNoErrors) {
-                ErrorHandler(error_for_handler);
-                return 1;
-            }
-            ListDump(&main_list);
-        }
-        if (comand == 2) {
-            if ((error_for_handler = DeleteNodeAt(&main_list, index_after)) != kNoErrors) {
-                ErrorHandler(error_for_handler);
-                return 1;
-            }
-            ListDump(&main_list);
-        }
+    if (ListCtor(&main_list, main_file) != kNoErrors) {
+        fprintf(stderr, "Failed to construct list.\n");
+        return EXIT_FAILURE;
     }
-
-    BeginGraph(&main_list);
-    PrintFictive(&main_list);
-    PrintNodes(&main_list);
-    PrintEdges(&main_list);
-    EndGraph(&main_list);
-
-    return 0;
+    RunInteractiveSession(&main_list);
+    ListDtor(&main_list);
+    return EXIT_SUCCESS;
 }
+

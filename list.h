@@ -36,8 +36,10 @@ typedef struct{
 
 typedef struct{
     tNode* nodes;
-    int free;
-    FILE* log_file;
+    int    free;
+    FILE*  log_file;
+    int    capacity;
+    int    dump_counter;
 } tList;
 
 static const int kNodesAmount      = 10;
@@ -51,18 +53,21 @@ static const int kSizeMultiplier   = 2;
 
 tListError ListDump    (tList* ref_list);
 tListError ListVerify  (tList* ref_list);
+
 tListError DeleteNodeAt(tList* ref_list, int index);
 tListError AddBack     (tList* ref_list, tData value);
 tListError AddFront    (tList* ref_list, tData value);
 tListError AddNodeAfter(tList* reference_list, int index, tData value);
-tListError SetData     (tList* ref_list, int index, tData value);
 
-tData GetData (tList* ref_list, int index);
+tListError SetData(tList* ref_list, int index, tData value);
+tData GetData     (tList* ref_list, int index);
+tListError ListIncrease (tList* reference_list);
 
 tListError ListCtor(tList* reference_list, const char* logger_file_name);
 void ListDtor      (tList* ref_list);
 void ErrorHandler  (tListError error);
 bool ValidData     (tData ref_data);
+
 
 int NodeNext (tList* ref_list, int index);
 int NodePrev (tList* ref_list, int index);
