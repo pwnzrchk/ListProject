@@ -1,47 +1,50 @@
 CC = g++
-CFLAGS = -Og -ggdb -Wall -std=c++17 -Wall -Wextra -Weffc++ -Wc++14-compat -Wmissing-declarations   \
-		 -Wcast-align -Wcast-qual -Wchar-subscripts -Wconversion -Wctor-dtor-privacy     \
-		 -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security -Wformat=2     \
-		 -Winline -Wnon-virtual-dtor -Woverloaded-virtual -Wpacked -Wpointer-arith       \
-		 -Winit-self -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo           \
-		 -Wstrict-overflow=2 -Wsuggest-override -Wswitch-default -Wswitch-enum -Wundef   \
-		 -Wunreachable-code -Wunused -Wvariadic-macros -Wno-literal-range 			     \
-		 -Wno-missing-field-initializers -Wno-narrowing -Wno-old-style-cast 			 \
-		 -Wno-varargs -Wstack-protector -Wsuggest-override -Wbounds-attributes-redundant \
-		 -Wlong-long -Wopenmp -fcheck-new -fsized-deallocation -fstack-protector 		 \
-		 -fstrict-overflow -fno-omit-frame-pointer -Wlarger-than=8192 -Wstack-protector  \
+CFLAGS = -Og -ggdb -Wall -std=c++17 -Wall -Wextra -Weffc++ -Wc++14-compat -Wmissing-declarations \
+		 -Wcast-align -Wcast-qual -Wchar-subscripts -Wconversion -Wctor-dtor-privacy     		 \
+		 -Wempty-body -Wfloat-equal -Wformat-nonliteral -Wformat-security -Wformat=2     		 \
+		 -Winline -Wnon-virtual-dtor -Woverloaded-virtual -Wpacked -Wpointer-arith       		 \
+		 -Winit-self -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo           		 \
+		 -Wstrict-overflow=2 -Wsuggest-override -Wswitch-default -Wswitch-enum -Wundef   		 \
+		 -Wunreachable-code -Wunused -Wvariadic-macros -Wno-literal-range 			     		 \
+		 -Wno-missing-field-initializers -Wno-narrowing -Wno-old-style-cast 			 		 \
+		 -Wno-varargs -Wstack-protector -Wsuggest-override -Wbounds-attributes-redundant 		 \
+		 -Wlong-long -Wopenmp  -fsized-deallocation -fstack-protector 		 			 		 \
+		 -fstrict-overflow -fno-omit-frame-pointer -Wlarger-than=8192 -Wstack-protector  		 \
 		 -fPIE -Werror=vla -fsanitize=address
 
 
-LIST = list.cpp
-LIST_OBJ = $(LIST:.cpp=.o)
 
-$(LIST_OBJ): %.o: %.cpp
+
+BUILD_DIR = build
+
+TARGET = list
+
+SRCS = main.cpp list.cpp logger.cpp console_handler.cpp
+
+OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.cpp=.o))
+
+EXECUTABLE = $(BUILD_DIR)/$(TARGET)
+
+
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJS)
+	@echo "Linking project..."
+	@$(CC) $(CFLAGS) $^ -o $@ -lm
+
+
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
+	@echo "Compiling $<..."
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-MAIN = main.cpp
-MAIN_OBJ = $(MAIN:.cpp=.o)
 
-$(MAIN_OBJ): %.o: %.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR):
+	@mkdir -p $@
 
-LOG = logger.cpp
-LOG_OBJ = $(LOG:.cpp=.o)
-
-$(LOG_OBJ): %.o: %.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
-
-
-
-list: $(MAIN_OBJ) $(LIST_OBJ) $(LOG_OBJ)
-	@$(CC) $(CFLAGS) $^  -o $@ -lm
-
-
-%.o: %.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@echo "cleaning..."
-	@rm -f $(MAIN_OBJ) $(LIST_OBJ) all
+	@echo "Cleaning build directory..."
+	@rm -rf $(BUILD_DIR)
 
-.PHONY: clean
+
+.PHONY: all clean
