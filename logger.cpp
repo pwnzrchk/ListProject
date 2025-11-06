@@ -66,22 +66,26 @@ static void PrintEdges(tList* ref_list) {
 
 
     if (head_idx != kFictionalElement) {
-        fprintf(ref_list->log_file, "\tFictive:p_next -> Node%d [tailport=e, headport=w, color=\"#0077be\", arrowhead=onormal, weight=100, xlabel=\"Head\"];\n", head_idx);
-        fprintf(ref_list->log_file, "\tNode%d:p_prev -> Fictive [tailport=w, headport=e, color=\"#d73a49\", constraint=false];\n", head_idx);
+        fprintf(ref_list->log_file, "\tFictive:p_next -> Node%d [color=\"#006400\", arrowhead=vee, weight=100,"
+                                    " style=bold, xlabel=\"Head\"];\n", head_idx);
     }
 
     if (tail_idx != kFictionalElement) {
-        fprintf(ref_list->log_file, "\tNode%d:p_next -> Fictive [tailport=e, headport=e, color=\"#0077be\", constraint=false];\n", tail_idx);
-        fprintf(ref_list->log_file, "\tFictive:p_prev -> Node%d [tailport=w, headport=e, color=\"#d73a49\", arrowhead=onormal, weight=100, xlabel=\"Tail\"];\n", tail_idx);
+        fprintf(ref_list->log_file, "\tNode%d:p_next -> Fictive [color=\"#006400\", style=bold, headport=e, tailport=w, "
+                                    " arrowhead=vee, dir=back, weight=100, xlabel=\"Tail\"];\n", tail_idx);
     }
 
-    for (int i = ListHead(ref_list); i != kFictionalElement; i = NodeNext(ref_list, i)) {
+    for (int i = ListHead(ref_list); ref_list->nodes[i].next != kFictionalElement && i != kFictionalElement; i = NodeNext(ref_list, i)) {
         int next_node_idx = ref_list->nodes[i].next;
-        if (next_node_idx != kFictionalElement) {
-            fprintf(ref_list->log_file, "\tNode%d:p_next -> Node%d [tailport=n, headport=n, color=\"#0077be\", weight=100];\n", i, next_node_idx);
 
-            fprintf(ref_list->log_file, "\tNode%d:p_prev -> Node%d [tailport=s, headport=s, color=\"#d73a49\", constraint=false];\n", next_node_idx, i);
-        }
+        fprintf(ref_list->log_file,
+                "\tNode%d -> Node%d [dir=both, arrowhead=normal, arrowtail=inv, "
+                "color=\"#8B0000;#d73a49\", constraint=true];\n",
+                i, next_node_idx);
+
+        fprintf(ref_list->log_file,
+                "\tNode%d -> Node%d [style=invis, weight=1000];\n",
+                i, next_node_idx);
     }
 }
 
@@ -91,7 +95,6 @@ static void CreateGraphImage(const char* dot_file_name, const char* png_file_nam
     char command[kMaxCommandLength];
 
     snprintf(command, kMaxCommandLength, "dot -Tpng %s -o %s", dot_file_name, png_file_name);
-    // printf("Executing command: %s\n", command);
 
     int result = system(command);
     if (result == 0) {
@@ -132,33 +135,36 @@ static void DrawGraph(tList* ref_list) {
 //=================================================================================================================================================
 
 static void PrintFree(tList* ref_list) {
+    if (ref_list->free == kFictionalElement) return;
 
     fprintf(ref_list->log_file, "\tsubgraph cluster_free {\n"
+                                "\t\trankdir=LR;\n"
                                 "\t\tstyle=filled;\n"
                                 "\t\tcolor=gray;\n"
                                 "\t\tlabel=\"Free elements\";\n");
 
+
     for (int actual_free = ref_list->free; actual_free != kFictionalElement; actual_free = NodeNext(ref_list, actual_free)) {
-        fprintf(ref_list->log_file, "\tNode%d [shape=record, label=\""
-                "index: %d | data: %d | <p_next> next: %d | <p_prev> prev: %d\" ];\n",
+        fprintf(ref_list->log_file, "\t\tNode%d [shape=record, label=\""
+                "index: %d | data: %d | next: %d | prev: %d\" ];\n",
                 actual_free, actual_free,
                 ref_list->nodes[actual_free].data,
                 ref_list->nodes[actual_free].next,
                 ref_list->nodes[actual_free].prev);
-
-                if (actual_free == 1000) return;
-
     }
+
 
     for (int current_free = ref_list->free; current_free != kFictionalElement; current_free = NodeNext(ref_list, current_free)) {
         int next_free_idx = ref_list->nodes[current_free].next;
-        if (next_free_idx == kFictionalElement) {
-            fprintf(ref_list->log_file, "\tNode%d:p_next -> Fictive:p_prev [tailport=e, headport=n, color=\"#C71585\", weight=100];\n", current_free);
-            fprintf(ref_list->log_file, "\t}\n");
-            return;
+        if (next_free_idx != kFictionalElement) {
+            fprintf(ref_list->log_file, "\t\tNode%d -> Node%d [color=\"#C71585\", style=dashed, constraint=false];\n", current_free, next_free_idx);
+        } else {
+            fprintf(ref_list->log_file, "\t\tNode%d -> Fictive [color=\"#8B008B\", style=bold, constraint=false,"
+                                        " dir=back, tailport=w, headport=w];\n", current_free);
         }
-        fprintf(ref_list->log_file, "\tNode%d:p_next -> Node%d [tailport=e, headport=n, color=\"#C71585\", weight=100];\n", current_free, next_free_idx);
     }
+
+    fprintf(ref_list->log_file, "\t}\n");
 }
 
 //=================================================================================================================================================
