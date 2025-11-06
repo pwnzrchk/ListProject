@@ -4,11 +4,8 @@
 #include <stdio.h>
 #include "list.h"
 
+static const int kMaxCommandLength = 64;
 
-void PrintNodes  (List* ref_list);
-void EndGraph    (List* ref_list);
-void BeginGraph  (List* ref_list);
-void PrintFictive(List* ref_list);
-void PrintEdges  (List* ref_list);
+void GraphDump(tList* ref_list, const char* dot_file_name, const char* png_file_name, const char* html_filemane);
 
 #endif //logger_h

@@ -1,0 +1,13 @@
+
+build/
+
+list
+
+files/*.dot
+files/*.png
+files/*.html
+
+.vscode/
+*.swp
+
+.DS_Store
